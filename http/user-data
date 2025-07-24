@@ -5,8 +5,8 @@ autoinstall:
     geoip: true
     preserve_sources_list: false
     primary:
-      - arches: [amd64]
-        uri: https://aptsource.gds-services.com/ubuntu
+    - arches: [amd64]
+      uri: https://aptsource.gds-services.com/ubuntu
     updates:
     - arches: [amd64]
       uri: https://aptsource.gds-services.com/ubuntu
