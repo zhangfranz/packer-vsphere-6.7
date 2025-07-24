@@ -6,13 +6,13 @@ autoinstall:
     preserve_sources_list: false
     primary:
       - arches: [amd64]
-        uri: https://aptsource.basic-ops.com/ubuntu
+        uri: https://aptsource.gds-services.com/ubuntu
     updates:
     - arches: [amd64]
-      uri: https://aptsource.basic-ops.com/ubuntu
+      uri: https://aptsource.gds-services.com/ubuntu
     security:
     - arches: [amd64]
-      uri: https://aptsource.basic-ops.com/ubuntu
+      uri: https://aptsource.gds-services.com/ubuntu
   network:
     version: 2
     ethernets:
@@ -29,23 +29,67 @@ autoinstall:
   locale: en_US.UTF-8
   timezone: Asia/Shanghai
   storage:
+    version: 1
     layout:
       name: direct
     config: 
+      # 基础分区==============================>
+      # 定义磁盘
       - type: disk
-        id: disk0
-        match:
-          size: largest
+        id: disk-sda
+        device: /dev/sda
+        ptable: gpt
+        wipe: superblock
+        grub_device: true
+      # BIOS 引导分区 (GPT 需要)
       - type: partition
-        id: boot-partition
-        device: disk0
+        id: partition-bios
+        device: disk-sda
+        size: 2M
+        flag: bios_grub
+        number: 1
+      # /boot 分区 (建议 1GB)  
+      - type: partition
+        id: partition-boot
+        device: disk-sda
         size: 2048M
+        number: 2
+      # swap 分区 (8GB)
       - type: partition
-        id: root-partition
-        device: disk0
+        id: partition-swap
+        device: disk-sda
+        size: 8192M
+        number: 3
+      # 根分区 (使用剩余所有空间)
+      - type: partition
+        id: partition-root
+        device: disk-sda
         size: -1
+        number: 4
+      # 格式化==============================>
+      - type: format
+        id: format-boot
+        volume: partition-boot
+        fstype: ext4
+      - type: format
+        id: format-swap
+        volume: partition-swap
+        fstype: swap
+      - type: format
+        id: format-root
+        volume: partition-root
+        fstype: ext4
+      # 挂载==============================>
+      - type: mount
+        id: mount-boot
+        device: format-boot
+        path: /boot
+      - type: mount
+        id: mount-root
+        device: format-root
+        path: /           
   identity:
-    hostname: ubuntu-2204-static-template-v4
+    hostname: ubuntu-2204-static-template-v6
     username: app
     password: "$6$rounds=4096$YpFpkVKt/aX0DQTP$9prMM1x1JVErvQF6COlOv5XSraLyvFsfF5h9M7I1JQKsRZBVQCgcszksjDei8TrlDdrp7M2Wg1/APIuJyEGvv."
   ssh:
@@ -66,3 +110,7 @@ autoinstall:
     - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /target/etc/ssh/sshd_config
     - echo 'app ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/app
     - curtin in-target --target=/target -- systemctl restart sshd
+
+    # Set limits for linux
+    - echo "* soft nofile 65536" >> /target/etc/security/limits.conf
+    - echo "* hard nofile 65536" >> /target/etc/security/limits.conf
