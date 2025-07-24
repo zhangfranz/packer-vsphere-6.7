@@ -1,0 +1,68 @@
+#cloud-config
+autoinstall:
+  version: 1
+  apt:
+    geoip: true
+    preserve_sources_list: false
+    primary:
+      - arches: [amd64]
+        uri: https://aptsource.basic-ops.com/ubuntu
+    updates:
+    - arches: [amd64]
+      uri: https://aptsource.basic-ops.com/ubuntu
+    security:
+    - arches: [amd64]
+      uri: https://aptsource.basic-ops.com/ubuntu
+  network:
+    version: 2
+    ethernets:
+      ens192:
+        dhcp4: false
+        addresses: [172.16.1.250/24]
+        routes:
+          - to: default
+            via: 172.16.1.254
+        nameservers:
+          addresses: [10.80.93.100]
+  keyboard:
+    layout: us
+  locale: en_US.UTF-8
+  timezone: Asia/Shanghai
+  storage:
+    layout:
+      name: direct
+    config: 
+      - type: disk
+        id: disk0
+        match:
+          size: largest
+      - type: partition
+        id: boot-partition
+        device: disk0
+        size: 2048M
+      - type: partition
+        id: root-partition
+        device: disk0
+        size: -1
+  identity:
+    hostname: ubuntu-2204-static-template-v4
+    username: app
+    password: "$6$rounds=4096$YpFpkVKt/aX0DQTP$9prMM1x1JVErvQF6COlOv5XSraLyvFsfF5h9M7I1JQKsRZBVQCgcszksjDei8TrlDdrp7M2Wg1/APIuJyEGvv."
+  ssh:
+    install-server: true
+    allow-pw: true
+  users:
+    - name: app
+      groups: [sudo, adm]
+      shell: /bin/bash
+      sudo: ['ALL=(ALL) NOPASSWD:ALL']
+      lock_passwd: false
+      passwd: "$6$rounds=4096$YpFpkVKt/aX0DQTP$9prMM1x1JVErvQF6COlOv5XSraLyvFsfF5h9M7I1JQKsRZBVQCgcszksjDei8TrlDdrp7M2Wg1/APIuJyEGvv."
+  user-data:
+    disable_root: false
+  late-commands:
+    # Enable SSH root login and set up the app user
+    - sed -i -e 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config
+    - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /target/etc/ssh/sshd_config
+    - echo 'app ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/app
+    - curtin in-target --target=/target -- systemctl restart sshd
