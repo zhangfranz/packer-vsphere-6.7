@@ -1,10 +1,10 @@
-#### packer-vsphere-6.7
-Auto create vm template by packer.
+### Packer-Vsphere-6.7
+- Auto create vm template by packer via static ip address.
 
-#### version：
+### Version：
 - v1.0
 
-##### command：
+### Command：
 - 初始化
 ```code
 packer init ubuntu-22.04-tpl.pkr.hcl
@@ -18,7 +18,7 @@ packer validate ubuntu-22.04-tpl.pkr.hcl
 packer build ubuntu-22.04-tpl.pkr.hcl
 ```
 
-#### release：
+### Release：
 - 1.模板机构建完成
 - 2.网卡配置正常写入(通过模板创建虚拟机的时候，会有多个网卡文件存在的问题)
 - 3.磁盘配置生效(bios boot 只有1m大小)
@@ -26,7 +26,7 @@ packer build ubuntu-22.04-tpl.pkr.hcl
 - 5."app"用户被创建，且可免密登录 ----问题已解决
 - 6.基础必要软件安装htop、vim这些 ----问题已解决
 
-# network configuration：
+### Network Configuration：
 ```code
 # write_files:
 # - path: /etc/netplan/00-installer-config.yaml
