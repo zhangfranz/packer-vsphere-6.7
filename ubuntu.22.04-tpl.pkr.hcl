@@ -38,8 +38,8 @@ source "vsphere-iso" "ubuntu" {
   vm_name        = local.template_name
   guest_os_type  = "ubuntu64Guest"
   firmware       = "bios"
-  CPUs           = 1
-  cpu_cores      = 2
+  CPUs           = 2
+  cpu_cores      = 1
   CPU_hot_plug   = false
   RAM            = 2048
   RAM_hot_plug   = false
@@ -102,6 +102,7 @@ build {
   provisioner "shell" {
     inline = [
       "sudo su root -c \"mkdir -p /etc/cloud/cloud.cfg.d/\"",
+      # 禁止cloud-init进行网卡初始化，规避基于模板的二次虚拟机创建多网卡问题。
       "sudo su root -c \"echo 'network: {config: disabled}' | tee /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg\"",
       "sudo su root -c \"rm -f /etc/netplan/*.yaml\"",
     ]
