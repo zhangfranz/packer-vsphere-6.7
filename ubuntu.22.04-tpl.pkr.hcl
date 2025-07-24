@@ -1,116 +1,109 @@
-#cloud-config
-autoinstall:
-  version: 1
-  apt:
-    geoip: true
-    preserve_sources_list: false
-    primary:
-      - arches: [amd64]
-        uri: https://aptsource.gds-services.com/ubuntu
-    updates:
-    - arches: [amd64]
-      uri: https://aptsource.gds-services.com/ubuntu
-    security:
-    - arches: [amd64]
-      uri: https://aptsource.gds-services.com/ubuntu
-  network:
-    version: 2
-    ethernets:
-      ens192:
-        dhcp4: false
-        addresses: [172.16.1.250/24]
-        routes:
-          - to: default
-            via: 172.16.1.254
-        nameservers:
-          addresses: [10.80.93.100]
-  keyboard:
-    layout: us
-  locale: en_US.UTF-8
-  timezone: Asia/Shanghai
-  storage:
-    version: 1
-    layout:
-      name: direct
-    config: 
-      # 基础分区==============================>
-      # 定义磁盘
-      - type: disk
-        id: disk-sda
-        device: /dev/sda
-        ptable: gpt
-        wipe: superblock
-        grub_device: true
-      # BIOS 引导分区 (GPT 需要)
-      - type: partition
-        id: partition-bios
-        device: disk-sda
-        size: 2M
-        flag: bios_grub
-        number: 1
-      # /boot 分区 (建议 1GB)  
-      - type: partition
-        id: partition-boot
-        device: disk-sda
-        size: 2048M
-        number: 2
-      # swap 分区 (8GB)
-      - type: partition
-        id: partition-swap
-        device: disk-sda
-        size: 8192M
-        number: 3
-      # 根分区 (使用剩余所有空间)
-      - type: partition
-        id: partition-root
-        device: disk-sda
-        size: -1
-        number: 4
-      # 格式化==============================>
-      - type: format
-        id: format-boot
-        volume: partition-boot
-        fstype: ext4
-      - type: format
-        id: format-swap
-        volume: partition-swap
-        fstype: swap
-      - type: format
-        id: format-root
-        volume: partition-root
-        fstype: ext4
-      # 挂载==============================>
-      - type: mount
-        id: mount-boot
-        device: format-boot
-        path: /boot
-      - type: mount
-        id: mount-root
-        device: format-root
-        path: /           
-  identity:
-    hostname: ubuntu-2204-static-template-v6
-    username: app
-    password: "$6$rounds=4096$YpFpkVKt/aX0DQTP$9prMM1x1JVErvQF6COlOv5XSraLyvFsfF5h9M7I1JQKsRZBVQCgcszksjDei8TrlDdrp7M2Wg1/APIuJyEGvv."
-  ssh:
-    install-server: true
-    allow-pw: true
-  users:
-    - name: app
-      groups: [sudo, adm]
-      shell: /bin/bash
-      sudo: ['ALL=(ALL) NOPASSWD:ALL']
-      lock_passwd: false
-      passwd: "$6$rounds=4096$YpFpkVKt/aX0DQTP$9prMM1x1JVErvQF6COlOv5XSraLyvFsfF5h9M7I1JQKsRZBVQCgcszksjDei8TrlDdrp7M2Wg1/APIuJyEGvv."
-  user-data:
-    disable_root: false
-  late-commands:
-    # Enable SSH root login and set up the app user
-    - sed -i -e 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config
-    - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /target/etc/ssh/sshd_config
-    - echo 'app ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/app
-    - curtin in-target --target=/target -- systemctl restart sshd
+# 插件配置
+packer {
+  required_version = ">= 1.13.1"
+  required_plugins {
+    vsphere = {
+      source  = "github.com/hashicorp/vsphere"
+      version = ">= 1.4.2"
+    }
+  }
+}
 
-    # Set limits for linux
-    - echo "* soft nofile 65536" >> /target/etc/security/limits.conf
-    - echo "* hard nofile 65536" >> /target/etc/security/limits.conf
+variable "vcenter_server"   { default = "vcsa.basic-ops.com" }
+variable "vcenter_user"     { default = "administrator@basic-ops.com" }
+variable "vcenter_password" { default = "Ops1q2w.com" }
+variable "datacenter"       { default = "City Shanghai" }
+variable "cluster"          { default = "Headquarters Core" }
+variable "host"             { default = "172.16.1.51" }
+variable "datastore"        { default = "Esxi-DataStore-01" }
+variable "network"          { default = "VM Network" }
+variable "folder"           { default = "Templates" }
+
+locals { template_name = "ubuntu-2204-static-template-v6" }
+
+source "vsphere-iso" "ubuntu" {
+  // vCenter Server Endpoint Settings and Credentials
+  vcenter_server      = var.vcenter_server
+  username            = var.vcenter_user
+  password            = var.vcenter_password
+  insecure_connection = true
+
+  // vSphere Settings
+  datacenter     = var.datacenter
+  host           = var.host
+  datastore      = var.datastore
+  folder         = var.folder
+
+  // Virtual Machine Settings
+  vm_name        = local.template_name
+  guest_os_type  = "ubuntu64Guest"
+  firmware       = "bios"
+  CPUs           = 1
+  cpu_cores      = 2
+  CPU_hot_plug   = false
+  RAM            = 2048
+  RAM_hot_plug   = false
+  disk_controller_type = ["pvscsi"]
+  storage {
+    disk_size             = 51200 # 50GB
+    disk_thin_provisioned = true
+  }
+  network_adapters {
+    network      = var.network
+    network_card = "vmxnet3"
+  }
+  notes          = "build ubuntu 22.04 template machine by packer"
+
+  // iso configuration
+  iso_url      = "file:///opt/packer/iso/ubuntu-22.04.5-live-server-amd64.iso"
+  iso_checksum = "sha256:9bc6028870aef3f74f4e16b900008179e78b130e6b0b9a140635434a46aa98b0"
+
+  // Boot and Provisioning Settings
+  http_directory      = "./http"
+  http_ip             = "172.16.1.72"
+  http_bind_address   = "0.0.0.0"
+  http_port_min       = 8276
+  http_port_max       = 8276
+  boot_order          = "disk,cdrom"
+  boot_wait           = "3s"
+  boot_command = [
+    "<wait3s>e<wait3s>",
+    "<down><down><down><end><bs><bs><bs><bs><wait>",
+    "ip=172.16.1.250::172.16.1.254:255.255.255.0:ubuntu2204:ens192:none nameserver=10.80.93.100 autoinstall ds='nocloud-net;seedfrom=http://{{.HTTPIP}}:{{.HTTPPort}}/' ---",
+    "<wait3s>",
+    "<F10>"
+  ]
+  ip_wait_timeout     = "30m"
+  shutdown_command    = "echo 'Packer123!' | sudo -S shutdown -P now"
+
+  // Communicator Settings and Credentials
+  communicator        = "ssh"
+  ssh_username        = "app"
+  ssh_password        = "Packer123!"
+  ssh_port            = 22
+  ssh_timeout         = "60m"
+  
+  // Template and Content Library Settings
+  convert_to_template = true
+}
+
+# 构建配置
+build {
+  sources = ["source.vsphere-iso.ubuntu"]
+
+  provisioner "shell" {
+    execute_command = "sudo -S bash -c '{{ .Vars }} {{ .Path }}'"
+    inline = [
+      "apt-get update",
+      "apt-get install -y -qq iputils-ping telnet net-tools dnsutils nmap htop iotop iftop vim wget tree parted expect open-vm-tools cron tcpdump tmux ntp ntpdate",
+    ]
+  }
+
+  provisioner "shell" {
+    inline = [
+      "sudo su root -c \"mkdir -p /etc/cloud/cloud.cfg.d/\"",
+      "sudo su root -c \"echo 'network: {config: disabled}' | tee /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg\"",
+      "sudo su root -c \"rm -f /etc/netplan/*.yaml\"",
+    ]
+  }
+}
