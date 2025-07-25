@@ -30,66 +30,61 @@ autoinstall:
   timezone: Asia/Shanghai
   storage:
     version: 1
-    layout:
-      name: direct
     config: 
       # 基础分区==============================>
       # 定义磁盘
       - type: disk
-        id: disk-sda
-        device: /dev/sda
+        id: sda
         ptable: gpt
         wipe: superblock
         grub_device: true
       # BIOS 引导分区 (GPT 需要)
       - type: partition
-        id: partition-bios
-        device: disk-sda
+        id: bios
+        device: sda
         size: 2M
         flag: bios_grub
-        number: 1
       # /boot 分区 (建议 1GB)  
       - type: partition
-        id: partition-boot
-        device: disk-sda
+        id: boot
+        device: sda
         size: 2048M
-        number: 2
+      - type: format
+        id: boot_fs
+        volume: boot
+        fstype: ext4
+      - type: mount
+        id: boot_mount
+        device: boot_fs
+        path: /boot
       # swap 分区 (8GB)
       - type: partition
-        id: partition-swap
-        device: disk-sda
+        id: swap
+        device: sda
         size: 8192M
-        number: 3
+      - type: format
+        id: swap_fs
+        volume: swap
+        fstype: swap
+      - type: mount
+        id: swap_mount
+        device: swap_fs
+        path: none
       # 根分区 (使用剩余所有空间)
       - type: partition
-        id: partition-root
-        device: disk-sda
+        id: root
+        device: sda
         size: -1
-        number: 4
-      # 格式化==============================>
       - type: format
-        id: format-boot
-        volume: partition-boot
+        id: root_fs
+        volume: root
         fstype: ext4
-      - type: format
-        id: format-swap
-        volume: partition-swap
-        fstype: swap
-      - type: format
-        id: format-root
-        volume: partition-root
-        fstype: ext4
-      # 挂载==============================>
       - type: mount
-        id: mount-boot
-        device: format-boot
-        path: /boot
-      - type: mount
-        id: mount-root
-        device: format-root
-        path: /           
+        id: root_mount
+        device: root_fs
+        path: /
   identity:
-    hostname: ubuntu-2204-static-template-v6
+    hostname: ubuntu-2204-static-template-v10
     username: app
     password: "$6$rounds=4096$YpFpkVKt/aX0DQTP$9prMM1x1JVErvQF6COlOv5XSraLyvFsfF5h9M7I1JQKsRZBVQCgcszksjDei8TrlDdrp7M2Wg1/APIuJyEGvv."
   ssh:
