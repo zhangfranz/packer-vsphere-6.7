@@ -1,8 +1,10 @@
 ### Packer-Vsphere-6.7
 - Auto create vm template by packer via static ip address.
+- Date: 2025-07-25
 
 ### Version：
-- v1.0
+- Packer verison: v1.0
+- OS system version: Ubuntu-22.04
 
 ### Command：
 - 初始化
@@ -17,32 +19,28 @@ packer validate ubuntu-22.04-tpl.pkr.hcl
 ```code
 packer build ubuntu-22.04-tpl.pkr.hcl
 ```
-
-### Release：
-- 1.模板机构建完成
-- 2.网卡配置正常写入(通过模板创建虚拟机的时候，会有多个网卡文件存在的问题)----问题已解决（v4）
-- 3.磁盘配置生效(bios boot 只有1m大小)
-- 4.APT源更新生效（main\updates\security）全部生效----问题已解决
-- 5."app"用户被创建，且可免密登录 ----问题已解决
-- 6.基础必要软件安装htop、vim这些 ----问题已解决
-
-### Network Configuration：
+- 开启构建debug模式
 ```code
-# write_files:
-# - path: /etc/netplan/00-installer-config.yaml
-#   content: |
-#     # This is the network config written by 'subiquity'
-#     network:
-#       version: 2
-#       ethernets:
-#         ens33:
-#           addresses:
-#           - 172.16.1.250/24           
-#           routes:
-#           - to: default
-#             via: 172.16.1.254
-#           nameservers:
-#             addresses:
-#             - 114.114.114.114
-#             search: []
+packer build -debug ubuntu-22.04-tpl.pkr.hcl
+```
+
+### Function：
+- 1.APT私有源支持
+- 2.网卡配置支持(去除cloud-init的预配置)
+- 3.磁盘分区配置支持(bios\boot\swap\root分区)
+- 4.默认账户配置（app/Packer123!;app免密切root权限;开启root远程登录）
+- 5.系统描述符Limit优化配置
+- 6.NTP预装配置(配置公司NTP私有时间同步地址)
+- 7.静默预装基础组件包(iputils-ping telnet net-tools dnsutils nmap htop iotop iftop vim wget tree parted expect open-vm-tools cron tcpdump tmux ntp ntpdate)
+- 8.支持不依赖DHCP的静态IP和DNS注入
+- 9.支持离线ISO注入
+
+
+### File Hierarchy：
+```code
+./http
+├── meta-data
+└── user-data
+./release.md
+./ubuntu-22.04-tpl.pkr.hcl
 ```
