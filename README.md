@@ -25,16 +25,15 @@ packer build -debug ubuntu-22.04-tpl.pkr.hcl
 ```
 
 ### Function：
-- 1.APT私有源支持
-- 2.网卡配置支持(去除cloud-init的预配置)
-- 3.磁盘分区配置支持(bios\boot\swap\root分区)
-- 4.默认账户配置（app/Packer123!;app免密切root权限;开启root远程登录）
-- 5.系统描述符Limit优化配置
-- 6.NTP预装配置(配置公司NTP私有时间同步地址)
-- 7.静默预装基础组件包(iputils-ping telnet net-tools dnsutils nmap htop iotop iftop vim wget tree parted expect open-vm-tools cron tcpdump tmux ntp ntpdate)
-- 8.支持不依赖DHCP的静态IP和DNS注入
-- 9.支持离线ISO注入
-
+- APT私有源支持
+- 网卡配置支持(去除cloud-init的预配置)
+- 磁盘分区配置支持(bios\boot\swap\root分区)
+- 默认账户配置（app/Packer123!;app免密切root权限;开启root远程登录）
+- 系统描述符Limit优化配置
+- NTP预装配置(配置公司NTP私有时间同步地址)
+- 静默预装基础组件包(iputils-ping telnet net-tools dnsutils nmap htop iotop iftop vim wget tree parted expect open-vm-tools cron tcpdump tmux ntp ntpdate)
+- 支持不依赖DHCP的静态IP和DNS注入
+- 支持离线ISO注入
 
 ### File Hierarchy：
 ```code
