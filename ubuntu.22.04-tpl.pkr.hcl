@@ -19,7 +19,7 @@ variable "datastore"        { default = "Esxi-DataStore-01" }
 variable "network"          { default = "VM Network" }
 variable "folder"           { default = "Templates" }
 
-locals { template_name = "ubuntu-2204-static-template-v10" }
+locals { template_name = "ubuntu-2204-static-template-v1" }
 
 source "vsphere-iso" "ubuntu" {
   // vCenter Server Endpoint Settings and Credentials
