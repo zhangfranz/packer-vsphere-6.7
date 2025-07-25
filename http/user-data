@@ -84,7 +84,7 @@ autoinstall:
         device: root_fs
         path: /
   identity:
-    hostname: ubuntu-2204-static-template-v10
+    hostname: ubuntu-2204-static-template-v1
     username: app
     password: "$6$rounds=4096$YpFpkVKt/aX0DQTP$9prMM1x1JVErvQF6COlOv5XSraLyvFsfF5h9M7I1JQKsRZBVQCgcszksjDei8TrlDdrp7M2Wg1/APIuJyEGvv."
   ssh:
