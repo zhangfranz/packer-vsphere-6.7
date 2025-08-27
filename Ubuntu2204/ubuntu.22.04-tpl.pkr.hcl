@@ -97,12 +97,12 @@ build {
       "apt-get update",
       "apt-get install -y -qq iputils-ping telnet net-tools dnsutils nmap htop iotop iftop vim wget tree parted expect open-vm-tools cron tcpdump tmux ntp ntpdate",
       # Set ntp service
-      "sed -i -e 's/0.ubuntu.pool.ntp.org/ntpsvc.gds-services.com/g' /etc/ntp.conf",
+      "sed -i -e 's/0.ubuntu.pool.ntp.org/ntpsvc.basic-ops.com/g' /etc/ntp.conf",
       "sed -i '/ubuntu.pool.ntp.org/d' /etc/ntp.conf",
       "sed -i '/ntp.ubuntu.com/d' /etc/ntp.conf",
       "systemctl enable ntp",
       # add time sync to crontab
-      "echo '00 1 * * * /usr/sbin/ntpdate -u ntpsvc.gds-services.com > /dev/null 2>&1' >> /var/spool/cron/crontabs/root ",
+      "echo '00 1 * * * /usr/sbin/ntpdate -u ntpsvc.basic-ops.com > /dev/null 2>&1' >> /var/spool/cron/crontabs/root ",
       # add ansible id_rsa.pub to authorized_keys
       "mkdir -p /root/.ssh",
       "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC4Z5b7k8z9f5d1b5e3f8c9d2e4f6a7b8c9e0f1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b' >> /root/.ssh/authorized_keys",
