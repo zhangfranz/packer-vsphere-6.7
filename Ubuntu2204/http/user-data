@@ -6,13 +6,13 @@ autoinstall:
     preserve_sources_list: false
     primary:
     - arches: [amd64]
-      uri: https://aptsource.gds-services.com/ubuntu
+      uri: https://aptsource.basic-ops.com/ubuntu
     updates:
     - arches: [amd64]
-      uri: https://aptsource.gds-services.com/ubuntu
+      uri: https://aptsource.basic-ops.com/ubuntu
     security:
     - arches: [amd64]
-      uri: https://aptsource.gds-services.com/ubuntu
+      uri: https://aptsource.basic-ops.com/ubuntu
   network:
     version: 2
     ethernets:
